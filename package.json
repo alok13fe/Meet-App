@@ -1,0 +1,24 @@
+{
+  "name": "Meet App",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "db:build": "cd packages/db && pnpm build",
+    "dev": "turbo run dev",
+    "start:frontend": "cd apps/frontend && pnpm start",
+    "start:http-backend": "cd apps/http-backend && pnpm start",
+    "start:ws-backend": "cd apps/ws-backend && pnpm start",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.6.0",
+    "typescript": "5.9.2"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

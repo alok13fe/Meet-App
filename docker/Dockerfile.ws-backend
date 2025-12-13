@@ -1,0 +1,33 @@
+FROM node:18-alpine
+
+RUN apk add --no-cache \
+  python3 \
+  py3-pip \
+  make \
+  g++ \
+  gcc \
+  linux-headers \
+  cmake \
+  openssl-dev \
+  libuv-dev
+
+WORKDIR /app
+
+COPY ./packages ./packages
+COPY ./apps/ws-backend ./apps/ws-backend
+
+COPY ./package.json ./package.json
+COPY ./turbo.json ./turbo.json
+COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
+COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
+
+RUN npm install -g pnpm
+RUN pnpm install
+
+RUN pnpm run db:build
+RUN pnpm build
+
+EXPOSE 8080
+EXPOSE 10000-11000/udp
+
+CMD ["pnpm", "run", "start:ws-backend"]

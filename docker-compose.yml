@@ -1,0 +1,41 @@
+services:
+  frontend: 
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_BASE_URL=http://http-backend:4000/api/v1
+      - NEXT_PUBLIC_WS_URL=ws://ws-backend:8080
+      - NEXT_PUBLIC_FIREBASE_API_KEY=${NEXT_PUBLIC_FIREBASE_API_KEY}
+    depends_on:
+      - http-backend
+      - ws-backend
+
+  http-backend:
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.http-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - MONGODB_URI=${MONGODB_URI}
+      - DB_NAME=${DB_NAME}
+      - JWT_TOKEN_SECRET=${JWT_TOKEN_SECRET}
+      - JWT_TOKEN_EXPIRY=${JWT_TOKEN_EXPIRY}
+
+  ws-backend:
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.ws-backend
+    ports:
+      - "8080:8080"
+      - "10000-11000:10000-11000/udp"
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - DB_NAME=${DB_NAME}
+      - JWT_TOKEN_SECRET=${JWT_TOKEN_SECRET}
+      - JWT_TOKEN_EXPIRY=${JWT_TOKEN_EXPIRY}
+      - MEDIASOUP_ANNOUNCED_IP=${MEDIASOUP_ANNOUNCED_IP}

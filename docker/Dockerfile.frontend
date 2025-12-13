@@ -1,0 +1,20 @@
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY ./packages ./packages
+COPY ./apps/frontend ./apps/frontend
+
+COPY ./package.json ./package.json
+COPY ./turbo.json ./turbo.json
+COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
+COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
+
+RUN npm install -g pnpm
+RUN pnpm install
+
+RUN pnpm build
+
+EXPOSE 3000
+
+CMD ["pnpm", "run", "start:frontend"]
