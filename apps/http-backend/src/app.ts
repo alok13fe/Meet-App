@@ -1,10 +1,21 @@
 import express, { Express } from "express";
 import cors from "cors";
+import { rateLimit } from 'express-rate-limit';
 
 const app: Express = express();
 
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 100,
+	standardHeaders: 'draft-8',
+	legacyHeaders: false,
+	ipv6Subnet: 56,
+  message: "Too many requests, please try again after 15 minutes."
+});
+
+app.use(limiter);
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: ['http://localhost:3000'],
   credentials: true
 }));
 
