@@ -17,7 +17,7 @@ export default function Chats({ meetId, chatMessages, setChatMessages, onClose }
 
   const [message, setMessage] = useState('');
 
-  function handleSendMessage(){
+  const handleSendMessage = () =>{
     if(!socket || !profile){
       return;
     }

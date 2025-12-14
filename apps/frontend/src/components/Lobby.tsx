@@ -76,7 +76,7 @@ export default function Lobby({ isMicOn, setIsMicOn, isCameraOn, setIsCameraOn, 
     }
   }, [videoTrack]);
 
-  function toggleAudio(){
+  const toggleAudio = () => {
     if(!audioTrack){
       return;
     }
@@ -85,7 +85,7 @@ export default function Lobby({ isMicOn, setIsMicOn, isCameraOn, setIsCameraOn, 
     setIsMicOn(curr => !curr);
   }
 
-  async function toggleVideo() {
+  const toggleVideo = async () => {
     if(isCameraOn){
       if(videoTrack){
         videoTrack.stop();

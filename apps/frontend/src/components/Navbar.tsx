@@ -13,7 +13,7 @@ export default function Navbar(){
 
   const { profile } = useAppSelector(state => state.user);
 
-  function logout(e: React.MouseEvent<HTMLParagraphElement, MouseEvent>){
+  const logout = (e: React.MouseEvent<HTMLParagraphElement, MouseEvent>) => {
     e.preventDefault();
 
     localStorage.removeItem('token');

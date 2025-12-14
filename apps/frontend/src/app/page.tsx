@@ -16,7 +16,7 @@ export default function Home(){
   const [meetLink, setMeetLink] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function createMeet(){
+  const createMeet = async () => {
     if(!profile){
       return;
     }
@@ -44,7 +44,7 @@ export default function Home(){
     setLoading(false);
   }
 
-  async function joinMeet(){
+  const joinMeet = async () => {
     const meetId = meetLink.replace('http://localhost:3000/meet/', '');
     meetId.split(' ').join('');
 

@@ -25,7 +25,7 @@ export default function Signin({setPage, onClose}: SignInProps){
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  function handleInputChange(e: React.FormEvent<HTMLInputElement>){
+  const handleInputChange = (e: React.FormEvent<HTMLInputElement>) => {
     const {name, value} = e.currentTarget as HTMLInputElement;
     setFormData(prev => ({
       ...prev,
@@ -33,7 +33,7 @@ export default function Signin({setPage, onClose}: SignInProps){
     }));
   }
 
-  async function loginUser(e: React.FormEvent<HTMLFormElement>){
+  const loginUser = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const password = formData.password.split(' ').join('');
 
@@ -70,7 +70,7 @@ export default function Signin({setPage, onClose}: SignInProps){
     setLoading(false);
   }
 
-  async function handleGoogleAuth() {
+  const handleGoogleAuth = async () => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({prompt: 'select_account'});
 

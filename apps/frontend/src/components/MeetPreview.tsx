@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, Dispatch, SetStateAction } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, Dispatch, SetStateAction } from 'react';
 import * as mediasoupClient from 'mediasoup-client';
 import { useSocketContext } from '../contexts/SocketContext';
 import { ITransportCreated, IProducer, IConsumer, IJoinSuccess, IProducerAction } from "@repo/common/payload";
@@ -72,17 +72,22 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
   const [chatMessages, setChatMessages] = useState<IChat[]>([]);
   const [showParticipants, setShowParticipants] = useState(false);
   const [pinned, setPinned] = useState<{ userId: string, type: 'video'|'screen' } | null>(null);
-  
-  const loadDevice = async (routerRtpCapabilities: mediasoupClient.types.RtpCapabilities) => {
+  const [itemsPerPage, setItemsPerPage] = useState(2);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const loadDevice = useCallback(async (routerRtpCapabilities: mediasoupClient.types.RtpCapabilities) => {
     try {
       const newDevice = new mediasoupClient.Device();
       await newDevice.load({ routerRtpCapabilities });
       
       setDevice(newDevice);
     } catch (error) {
-      console.log(error);
+      console.log("Failed to load Mediasoup device:", error);
+      alert("Your browser is not supported or connection failed.");
+      router.push('/');
     }
-  }
+  },[router]);
 
   const publish = useCallback(() => {
     if(!socket){
@@ -183,7 +188,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
     });
 
     try {
-      if(videoTrack){
+      if(videoTrack !== undefined){
         const videoProducer = await transport.produce({
           track: videoTrack,
           appData: { type: 'video', roomId: meetId }
@@ -197,7 +202,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
       if(audioTrack){
          const audioProducer = await transport.produce({
           track: audioTrack,
-          appData: { type: 'audio', roomId: meetId}
+          appData: { type: 'audio', roomId: meetId }
         });
 
         setProducers(prev => {
@@ -531,7 +536,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
       default:
         break;
     }
-  },[onProducerTransportCreated, onSubTransportCreated, onSubscribed, handleNewProducer, handleProducerClosed, handleUserLeft]);
+  },[loadDevice, onProducerTransportCreated, onSubTransportCreated, onSubscribed, handleNewProducer, handleProducerClosed, handleUserLeft]);
 
   const toggleScreenShare = useCallback(async() => {
     if(shareScreen){
@@ -578,6 +583,25 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
     setShareScreen(curr => !curr);
   },[socket, meetId, producerTransport, producers.screenProducer, shareScreen, shareScreenStream]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if(width >= 1280){
+        setItemsPerPage(6);
+      }
+      else if(width >= 768){
+        setItemsPerPage(4);
+      }
+    };
+
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    }
+  }, []);
+  
   useEffect(() => {
     if(socket && !loading){
       if(intializeRef.current){
@@ -654,7 +678,29 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
     }
   }, [shareScreen, shareScreenStream, toggleScreenShare]);
 
-  function toggleAudio(){
+  useEffect(() => {
+    let TOTAL_ITEMS = shareScreen ? 2 : 1;
+    const screenWidth = window.innerWidth;
+
+    if((pinned || shareScreen) && screenWidth >= 768){
+      TOTAL_ITEMS += 3;
+    }
+
+    Array.from(remoteUsers.values()).map(user => {
+      TOTAL_ITEMS++;
+      if(user.screen){
+        TOTAL_ITEMS++;
+      }
+    });
+
+    const TOTAL_PAGES = Math.ceil(TOTAL_ITEMS / itemsPerPage);
+    if(currentPage >= TOTAL_PAGES && TOTAL_PAGES > 0){
+      setCurrentPage(TOTAL_PAGES - 1);
+    }
+    setTotalPages(TOTAL_PAGES);
+  },[pinned, shareScreen, itemsPerPage, remoteUsers]);
+
+  const toggleAudio = () => {
     if(!audioTrack){
       return;
     }
@@ -686,7 +732,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
     setIsMicOn(curr => !curr);
   }
 
-  async function toggleVideo() {
+  const toggleVideo = async () => {
     if(isCameraOn){
       if(socket){
         socket.send(JSON.stringify({
@@ -731,7 +777,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
     setIsCameraOn(curr => !curr);
   }
 
-  function leaveRoom(){
+  const leaveRoom = () => {
     if(!socket){
       return;
     }
@@ -745,7 +791,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
     router.push('/');
   }
 
-  function handlePinned(userId: string, type: 'video' | 'screen'){
+  const handlePinned = (userId: string, type: 'video' | 'screen') => {
     if(shareScreen){
       return;
     }
@@ -755,10 +801,11 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
     }
     else{
       setPinned({userId, type});
+      setCurrentPage(0);
     }
   }
 
-  function pinnedItem(){
+  const pinnedItem = () => {
     if(!pinned) return null;
 
     if(pinned.userId === '1'){
@@ -806,25 +853,57 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
     )
   }
 
+  const pinnedSlots = useMemo(() => {
+    if (!pinned && !shareScreen) return 0;
+    return itemsPerPage >= 4 ? 4 : 1; 
+  }, [pinned, shareScreen, itemsPerPage]);
+
+  const allGridItems = useMemo(() => {
+    const items: {userId: string; type: 'screen' | 'video'}[] = [];
+
+    if (pinned?.userId !== '1') {
+      items.push({ userId: '1', type: 'video' });
+    }
+
+    Array.from(remoteUsers.values())
+      .filter((user) => user.screen)
+      .forEach((user) => {
+        if (pinned?.userId !== user.id || pinned?.type !== 'screen') {
+          items.push({ userId: user.id, type: 'screen' });
+        }
+      });
+
+    Array.from(remoteUsers.values()).forEach((user) => {
+      if (pinned?.userId !== user.id || pinned?.type !== 'video') {
+        items.push({ userId: user.id, type: 'video' });
+      }
+    });
+
+    return items;
+  }, [pinned, remoteUsers]);
+
   return (
     <>
       <main>
+        {/* Audio */}
         <div className='hidden'>
           {
             Array.from(remoteUsers.values())
-            .filter(user => user.audio)
             .map(user => {
-              return <AudioPlayer key={user.id} audioStream={user.audio?.stream} />
+              if(user.audio && !user.audio?.isPaused){
+                return <AudioPlayer key={`audio-${user.id}`} audioStream={user.audio.stream} />
+              }
             })
           }
         </div>
+
         <div className="w-full h-screen flex flex-col overflow-hidden">
           <div className="flex-1 flex px-5 py-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {/* Pinned */}
               {
-                (pinned !== null || shareScreen) &&
-                <div className='col-span-2 aspect-video bg-gray-100 border'>
+                currentPage === 0 && (pinned !== null || shareScreen) &&
+                <div className='col-span-2 xl:row-span-2 aspect-video bg-gray-100'>
                   {
                     shareScreen ?
                     <div className='w-full aspect-video'>
@@ -842,58 +921,69 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
               }
 
               {
-                pinned?.userId !== '1' &&
-                <UserCard
-                  key={`localUser`}
-                  userId='1'
-                  firstName={'You'}
-                  lastName={'(You)'}
-                  isMicOn={isMicOn}
-                  videoStream={videoTrack && new MediaStream([videoTrack])}
-                  handlePinned={handlePinned}
-                />
-              }
+                allGridItems.slice(Math.max(0, currentPage * itemsPerPage - pinnedSlots), Math.max(0, (currentPage + 1) * itemsPerPage - pinnedSlots)).map(item => {
+                  if(item.userId === '1'){
+                    return (
+                      <UserCard
+                        key={`localUser`}
+                        userId='1'
+                        firstName={'You'}
+                        lastName={'(You)'}
+                        isMicOn={isMicOn}
+                        videoStream={videoTrack && new MediaStream([videoTrack])}
+                        handlePinned={handlePinned}
+                      />
+                    )
+                  }
 
-              {/* Shared Screens */}
-              {
-                Array.from(remoteUsers.values())
-                .filter(user => user.screen)
-                .map((user) => {
-                  const isPinned = user.id === pinned?.userId && pinned.type === 'screen';
+                  const user = remoteUsers.get(item.userId);
+                  if(user && item.type === 'screen'){
+                    return (
+                      <ScreenCard 
+                        key={`screen-${user.id}`}
+                        userId={user.id}
+                        firstName={user.firstName}
+                        lastName={user.lastName}
+                        screenStream={user.screen?.stream}
+                        handlePinned={handlePinned}
+                      />
+                    )
+                  }
 
-                  return isPinned ? null : ( 
-                    <ScreenCard 
-                      key={user.id}
-                      userId={user.id}
-                      firstName={user.firstName}
-                      lastName={user.lastName}
-                      screenStream={user.screen?.stream}
-                      handlePinned={handlePinned}
-                    />
-                  )
-                })
-              }
+                  if(user && item.type === 'video'){
+                    return (
+                      <UserCard 
+                        key={`video-${user.id}`}
+                        userId={user.id}
+                        firstName={user.firstName}
+                        lastName={user.lastName}
+                        isMicOn={user.audio?.isPaused}
+                        videoStream={user.video?.stream}
+                        handlePinned={handlePinned}
+                      />
+                    )
+                  }
 
-              {/* Remote Users */}
-              {
-                Array.from(remoteUsers.values())
-                .map((user) => {
-                  const isPinned = user.id === pinned?.userId && pinned.type === 'video';
-
-                  return isPinned ? null : ( 
-                    <UserCard 
-                      key={user.id}
-                      userId={user.id}
-                      firstName={user.firstName}
-                      lastName={user.lastName}
-                      isMicOn={!user.audio?.isPaused}
-                      videoStream={user.video?.stream}
-                      handlePinned={handlePinned}
-                    />
-                  )
+                  return null
                 })
               }
             </div>
+          </div>
+
+          {/* Pagination */}
+          <div className='h-3 flex justify-center gap-2'>
+            {
+              Array.from({length: totalPages}).map((item, idx) => {
+                return (
+                  <div 
+                    key={idx} 
+                    className={`h-3 w-3 ${currentPage === idx && 'bg-gray-300'} border cursor-pointer`}
+                    onClick={() => {setCurrentPage(idx)}}
+                  >
+                  </div>
+                )
+              })
+            }
           </div>
 
           {/* Buttons */}
