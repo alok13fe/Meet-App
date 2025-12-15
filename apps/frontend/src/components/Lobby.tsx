@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import type { Dispatch, SetStateAction } from "react"
-import { useAppSelector } from "../lib/hooks";
-import Navbar from "./Navbar"
+import { useAppSelector, useAppDispatch } from "../lib/hooks";
+import { setUserProfile } from "../lib/features/user/userSlice";
+import axios, { isAxiosError } from "axios";
+import Navbar from "./Navbar";
 
 interface ILobbyProps {
+  meetId: string;
   isMicOn: boolean;
   setIsMicOn: Dispatch<SetStateAction<boolean>>;
   isCameraOn: boolean;
@@ -15,14 +18,16 @@ interface ILobbyProps {
   setMeetStarted: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function Lobby({ isMicOn, setIsMicOn, isCameraOn, setIsCameraOn, videoTrack, setVideoTrack, audioTrack, setAudioTrack, setMeetStarted }: ILobbyProps) {
+export default function Lobby({ meetId, isMicOn, setIsMicOn, isCameraOn, setIsCameraOn, videoTrack, setVideoTrack, audioTrack, setAudioTrack, setMeetStarted }: ILobbyProps) {
   
+  const dispatch = useAppDispatch();
+
   const initializeRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   
   const [error, setError] = useState('');
 
-  const { profile }= useAppSelector(state => state.user);
+  const { profile } = useAppSelector(state => state.user);
 
   const getUserMedia = useCallback(async () => {
     try {
@@ -101,13 +106,30 @@ export default function Lobby({ isMicOn, setIsMicOn, isCameraOn, setIsCameraOn, 
     }
   }
 
-  const handleJoinMeet = () => {
+  const handleJoinMeet = async () => {
     if(!profile){
       console.log('Please login!');
       return;
     }
 
-    setMeetStarted(true);
+    try{
+      await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/meet/join/${meetId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      
+      setMeetStarted(true);
+    } catch (err) {
+      console.log(err);
+      if(isAxiosError(err)){
+        if(err.status === 403){
+          dispatch(setUserProfile(null));
+        }
+      }
+    }
   }
 
   return (
@@ -156,7 +178,7 @@ export default function Lobby({ isMicOn, setIsMicOn, isCameraOn, setIsCameraOn, 
             </div>
             
             <button 
-              className='px-2 py-1 bg-black text-white font-semibold border-black border-2 rounded'
+              className='px-2 py-1 bg-black text-white font-semibold cursor-pointer border-black border-2 rounded'
               onClick={handleJoinMeet}
             >
               Enter Meeting

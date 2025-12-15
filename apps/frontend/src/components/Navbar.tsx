@@ -38,7 +38,7 @@ export default function Navbar(){
             !profile 
             ?
             <button 
-              className="px-3 py-1 bg-black font-semibold text-white border-2 border-white rounded hover:opacity-80"
+              className="px-3 py-1 bg-black font-semibold text-white cursor-pointer border-2 border-white rounded hover:opacity-80"
               onClick={() => {setAuthContainer(true)}}
             >
               Get Started

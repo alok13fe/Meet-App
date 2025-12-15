@@ -28,6 +28,7 @@ export default function Meet(){
   if(!meetStarted){
     return (
       <Lobby 
+        meetId={meetId as string}
         isMicOn={isMicOn} 
         setIsMicOn={setIsMicOn} 
         isCameraOn={isCameraOn} 

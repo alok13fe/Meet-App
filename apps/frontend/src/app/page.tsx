@@ -82,7 +82,7 @@ export default function Home(){
             <p className="text-gray-400 text-center text-md sm:text-lg">Connect instantly with your team, friends and family with<br /> crystal clear video and audio.</p>
             <div className="w-full my-10 flex flex-col sm:flex-row justify-center gap-5 sm:gap-10">
               <button 
-                className="px-5 py-2 bg-black font-semibold text-white rounded hover:opacity-80" 
+                className="px-5 py-2 bg-black font-semibold text-white cursor-pointer rounded hover:opacity-80" 
                 onClick={createMeet}
                 disabled={loading}
               >
@@ -96,7 +96,7 @@ export default function Home(){
                   placeholder="Enter a code or link"
                   onChange={(e) => {setMeetLink(e.target.value)}}
                 />
-                <div className="p-2 bg-white hover:bg-gray-200" onClick={joinMeet}>
+                <div className="p-2 bg-white cursor-pointer hover:bg-gray-200" onClick={joinMeet}>
                   <svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" clipRule="evenodd" d="M17.6492 11.2501L12.7904 6.53852L13.8346 5.46167L20.5774 12.0001L13.8346 18.5385L12.7904 17.4617L17.6492 12.7501H3V11.2501H17.6492Z" fill="#080341"/>
                   </svg>

@@ -990,7 +990,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
           <div className="p-2 w-full flex justify-center">
             <div className='p-3 flex justify-center items-center gap-6 border border-gray-100 shadow-md rounded'>
               <div 
-                className={`h-10 w-10 flex items-center justify-center text-white rounded-full border-2 hover:opacity-70 ${isMicOn ? 'bg-black': "bg-red-500"}`}
+                className={`h-10 w-10 flex items-center justify-center text-white cursor-pointer border-2 rounded-full hover:opacity-70 ${isMicOn ? 'bg-black': "bg-red-500"}`}
                 onClick={toggleAudio}  
               >
                 {
@@ -1001,7 +1001,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
                 }
               </div>
               <div 
-                className={`h-10 w-10 flex items-center justify-center text-white rounded-full border-2 hover:opacity-70 ${isCameraOn ? 'bg-black': "bg-red-500"}`}
+                className={`h-10 w-10 flex items-center justify-center text-white cursor-pointer border-2 rounded-full hover:opacity-70 ${isCameraOn ? 'bg-black': "bg-red-500"}`}
                 onClick={toggleVideo}   
               >
                 {
@@ -1012,13 +1012,13 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
                 }
               </div>
               <div 
-                className={`h-10 w-10 flex items-center justify-center rounded-full border shadow-md hover:opacity-70 ${shareScreen ? 'bg-black text-white' : ''}`}
+                className={`h-10 w-10 flex items-center justify-center cursor-pointer border shadow-md rounded-full hover:opacity-70 ${shareScreen ? 'bg-black text-white' : ''}`}
                 onClick={toggleScreenShare} 
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-monitor-up-icon lucide-monitor-up"><path d="m9 10 3-3 3 3"/><path d="M12 13V7"/><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
               </div>
               <div 
-                className={`h-10 w-10 flex items-center justify-center rounded-full border shadow-md hover:opacity-70 ${showParticipants ? 'bg-black text-white' : ''}`}
+                className={`h-10 w-10 flex items-center justify-center cursor-pointer border shadow-md rounded-full hover:opacity-70 ${showParticipants ? 'bg-black text-white' : ''}`}
                 onClick={() => {
                   setShowMessages(false);
                   setShowParticipants(curr => !curr)
@@ -1027,7 +1027,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users-round-icon lucide-users-round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>
               </div>
               <div 
-                className={`h-10 w-10 flex items-center justify-center rounded-full border shadow-md hover:opacity-70 ${showMessages ? 'bg-black text-white' : ''}`}
+                className={`h-10 w-10 flex items-center justify-center cursor-pointer border shadow-md rounded-full hover:opacity-70 ${showMessages ? 'bg-black text-white' : ''}`}
                 onClick={() => {
                   setShowParticipants(false);
                   setShowMessages(curr => !curr);
@@ -1036,7 +1036,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-square-icon lucide-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               </div>
               <div 
-                className="h-10 w-10 flex items-center justify-center bg-red-500 text-white rounded-full hover:opacity-70 transform rotate-z-135"
+                className="h-10 w-10 flex items-center justify-center bg-red-500 text-white cursor-pointer rounded-full hover:opacity-70 transform rotate-z-135"
                 onClick={leaveRoom}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-phone-icon lucide-phone"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg>
@@ -1048,6 +1048,7 @@ export default function MeetPreview({ meetId, isMicOn, setIsMicOn, isCameraOn, s
       {
         showParticipants && 
         <Participants 
+          isMicOn={isMicOn}
           remoteUsers={remoteUsers} 
           onClose={() => {setShowParticipants(false)}} 
         />

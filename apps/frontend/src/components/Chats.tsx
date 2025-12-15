@@ -82,7 +82,7 @@ export default function Chats({ meetId, chatMessages, setChatMessages, onClose }
             onChange={(e) => {setMessage(e.target.value)}}
           />
           <button 
-            className="px-3 py-1 bg-black font-semibold text-white rounded hover:opacity-80"
+            className="px-3 py-1 bg-black font-semibold text-white cursor-pointer rounded hover:opacity-80"
             onClick={handleSendMessage}
           >
             Send
